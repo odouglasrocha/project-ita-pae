@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -126,11 +126,43 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function GlobalTransitionOverlay() {
+  const router = useRouter();
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (router.state.status === "pending") {
+      setIsVisible(true);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => setIsVisible(false), 220);
+    return () => window.clearTimeout(timeoutId);
+  }, [router.state.status]);
+
+  if (!isVisible) {
+    return null;
+  }
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/90 backdrop-blur-sm">
+      <div className="rounded-2xl border border-border/60 bg-card/80 p-6 shadow-2xl">
+        <img
+          src="/pepsico-logo.png"
+          alt="PepsiCo logo"
+          className="h-16 w-auto max-w-[220px] animate-pulse object-contain"
+        />
+      </div>
+    </div>
+  );
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
+      <GlobalTransitionOverlay />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>
