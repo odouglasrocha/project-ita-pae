@@ -104,6 +104,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/pepsico-logo.png", type: "image/png" },
+      { rel: "shortcut icon", href: "/pepsico-logo.png", type: "image/png" },
     ],
   }),
   shellComponent: RootShell,
@@ -129,16 +130,25 @@ function RootShell({ children }: { children: ReactNode }) {
 function GlobalTransitionOverlay() {
   const router = useRouter();
   const [isVisible, setIsVisible] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
-    if (router.state.status === "pending") {
-      setIsVisible(true);
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasMounted) {
       return;
     }
 
-    const timeoutId = window.setTimeout(() => setIsVisible(false), 220);
-    return () => window.clearTimeout(timeoutId);
-  }, [router.state.status]);
+    if (router.state.status === "pending") {
+      setIsVisible(true);
+      const timeoutId = window.setTimeout(() => setIsVisible(false), 800);
+      return () => window.clearTimeout(timeoutId);
+    }
+
+    setIsVisible(false);
+  }, [hasMounted, router.state.status]);
 
   if (!isVisible) {
     return null;
