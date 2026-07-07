@@ -31,6 +31,29 @@ function HistoryPage() {
 
     async function fetchList() {
       try {
+        // Em produção, use a API server-side segura que usa SUPABASE_SERVICE_ROLE_KEY
+        if (import.meta.env.PROD) {
+          const res = await fetch(`/api/inspections`)
+          if (!res.ok) throw new Error(`API /api/inspections failed: ${res.status}`)
+          const payload = await res.json()
+          const r = Array.isArray(payload?.data) ? payload.data : []
+          if (mounted) {
+            if (Array.isArray(r) && r.length === 0) {
+              try {
+                const { listInspectionsWithFallback } = await import("@/lib/inspections/repository")
+                const fallback = await listInspectionsWithFallback(200)
+                setRows(fallback)
+              } catch (fallbackErr) {
+                setRows([])
+              }
+            } else {
+              setRows(r)
+            }
+            setErr(null)
+          }
+          return
+        }
+
         const r = await fetchInspectionHistory(200)
         if (mounted) {
           if (Array.isArray(r) && r.length === 0) {
