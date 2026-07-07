@@ -4,6 +4,7 @@ import { Fragment, useEffect, useState } from "react"
 import {
   getInspectionFields,
   listInspections,
+  fetchInspectionHistory,
   type InspectionFieldRow,
   type InspectionRow,
 } from "@/lib/inspections/repository"
@@ -26,9 +27,51 @@ function HistoryPage() {
   const [err, setErr] = useState<string | null>(null)
 
   useEffect(() => {
-    listInspections(200)
-      .then(setRows)
-      .catch((e) => setErr((e as Error).message))
+    let mounted = true
+
+    async function fetchList() {
+      try {
+        const r = await fetchInspectionHistory(200)
+        if (mounted) {
+          if (Array.isArray(r) && r.length === 0) {
+            // tenta fallback quando não há registros pai
+            try {
+              const { listInspectionsWithFallback } = await import("@/lib/inspections/repository")
+              const fallback = await listInspectionsWithFallback(200)
+              setRows(fallback)
+            } catch (fallbackErr) {
+              setRows([])
+            }
+          } else {
+            setRows(r)
+          }
+          setErr(null)
+        }
+      } catch (e) {
+        if (mounted) setErr((e as Error).message)
+      }
+    }
+
+    fetchList()
+
+    // ouvindo notificações de salvar para atualizar automaticamente
+    let bc: BroadcastChannel | null = null
+    try {
+      bc = new BroadcastChannel("inspections")
+      bc.onmessage = (ev) => {
+        const payload = ev.data as any
+        if (payload?.type === "saved") {
+          fetchList()
+        }
+      }
+    } catch {
+      // BroadcastChannel pode não estar disponível — não é fatal
+    }
+
+    return () => {
+      mounted = false
+      if (bc) bc.close()
+    }
   }, [])
 
   const toggle = async (id: string) => {
@@ -38,6 +81,12 @@ function HistoryPage() {
     }
     setExpanded(id)
     if (!fields[id]) {
+      // verifica se a linha já inclui nested fields (evita chamada extra)
+      const row = rows?.find((r) => r.id === id) as (InspectionRow & { inspection_result_fields?: InspectionFieldRow[] }) | undefined
+      if (row && row.inspection_result_fields) {
+        setFields((prev) => ({ ...prev, [id]: row.inspection_result_fields ?? [] }))
+        return
+      }
       const f = await getInspectionFields(id)
       setFields((prev) => ({ ...prev, [id]: f }))
     }
@@ -97,6 +146,14 @@ function HistoryPage() {
                 <tr>
                   <td colSpan={8} className="px-3 py-6 text-center text-muted-foreground">
                     Nenhuma inspeção salva ainda.
+                  </td>
+                </tr>
+              )}
+              {rows?.length > 0 && rows[0].status === "ORPHANED" && (
+                <tr>
+                  <td colSpan={8} className="px-3 py-3 text-center text-muted-foreground">
+                    Há registros de campos no banco, mas faltam registros pai em `inspection_results`.
+                    Exibindo itens encontrados em `inspection_result_fields`.
                   </td>
                 </tr>
               )}

@@ -252,6 +252,15 @@ function ScannerPage() {
                   })
                   setSavedId(id)
                   setSavingMsg(id ? "Inspeção salva no histórico." : "Falha ao salvar inspeção.")
+                  if (id) {
+                    try {
+                      const bc = new BroadcastChannel("inspections")
+                      bc.postMessage({ type: "saved", id })
+                      bc.close()
+                    } catch {
+                      // ignore
+                    }
+                  }
                 } catch (e) {
                   setSavingMsg("Falha ao salvar: " + (e as Error).message)
                 }
