@@ -240,16 +240,42 @@ function ScannerPage() {
                 setSavingMsg("Salvando inspeção…")
                 stop()
                 try {
-                  const id = await saveInspection({
-                    parsed: p,
-                    result: r,
-                    ocrRaw: text,
-                    ocrConfidence: confidence,
-                    sharpness: score,
-                    expectedLS,
-                    expectedExpiration: formatDateBR(expectedExp),
-                    producaoISO: prodDateISO,
-                  })
+                  let id: string | null = null
+                  if (import.meta.env.PROD) {
+                    // envia para o endpoint server-side que usa a service role key
+                    const res = await fetch('/api/save-inspection', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        parsed: p,
+                        result: r,
+                        ocrRaw: text,
+                        ocrConfidence: confidence,
+                        sharpness: score,
+                        expectedLS,
+                        expectedExpiration: formatDateBR(expectedExp),
+                        producaoISO: prodDateISO,
+                      }),
+                    })
+                    if (!res.ok) {
+                      const txt = await res.text()
+                      throw new Error(`Server error ${res.status} ${txt}`)
+                    }
+                    const body = await res.json()
+                    id = body?.id ?? null
+                  } else {
+                    id = await saveInspection({
+                      parsed: p,
+                      result: r,
+                      ocrRaw: text,
+                      ocrConfidence: confidence,
+                      sharpness: score,
+                      expectedLS,
+                      expectedExpiration: formatDateBR(expectedExp),
+                      producaoISO: prodDateISO,
+                    })
+                  }
+
                   setSavedId(id)
                   setSavingMsg(id ? "Inspeção salva no histórico." : "Falha ao salvar inspeção.")
                   if (id) {
