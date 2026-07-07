@@ -42,9 +42,6 @@ export const TURNOS: Record<TurnoName, TurnoDefinition> = {
 
 export const materialsData: Material[] = [
   { Codigo: "300061751", Material: "TORCIDA BACON 35GX26 PP", Gramagem: "0,035", Und: 26, Caixas: 150, PPm: 65 },
-  { Codigo: "300061782", Material: "FOFURA BACON 35GX26 PP", Gramagem: "0,035", Und: 26, Caixas: 150, PPm: 75 },
-  { Codigo: "300061783", Material: "FOFURA BACON 60GX24 PP", Gramagem: "0,060", Und: 24, Caixas: 135, PPm: 75 },
-  { Codigo: "300061784", Material: "FOFURA CHURRASCO 35GX26 PP", Gramagem: "0,035", Und: 26, Caixas: 150, PPm: 75 },
   { Codigo: "300061750", Material: "TORCIDA BACON 60GX24 PP", Gramagem: "0,060", Und: 24, Caixas: 135, PPm: 65 },
   { Codigo: "300061635", Material: "TORCIDA BACON 420GX16 PP", Gramagem: "0,420", Und: 16, Caixas: 16, PPm: 30 },
   { Codigo: "300061778", Material: "TORCIDA CHURRASCO 60GX24 PP", Gramagem: "0,060", Und: 24, Caixas: 135, PPm: 75 },
@@ -77,6 +74,16 @@ export const materialsData: Material[] = [
   { Codigo: "300062190", Material: "TORCIDA CX MISTA PIM E CHUR 60GX24X1", Gramagem: "0,060", Und: 24, Caixas: 135, PPm: 75 },
   { Codigo: "300062005", Material: "TORCIDA PIM MEXICANA 210GX20 PP", Gramagem: "0,210", Und: 20, Caixas: 42, PPm: 55 },
   { Codigo: "300062006", Material: "TORCIDA CHURRASCO 210GX20 PP", Gramagem: "0,210", Und: 20, Caixas: 42, PPm: 55 },
+
+  { Codigo: "300061784", Material: "FOFURA CEBOLA 120GX8 PP", Gramagem: "0,120", Und: 10, Caixas: 120, PPm: 55 },
+  { Codigo: "300061785", Material: "FOFURA CHURRASCO 120GX8 PP", Gramagem: "0,120", Und: 10, Caixas: 120, PPm: 55},
+  { Codigo: "300061861", Material: "FOFURA CEBOLA 35GX10 PP", Gramagem: "0,035", Und: 10, Caixas: 210, PPm: 55 },
+  { Codigo: "300061855", Material: "FOFURA REQUEIJAO ONDA 60GX10 PP", Gramagem: "0,060", Und: 10, Caixas: 138, PPm: 55 },
+  { Codigo: "300061856", Material: "FOFURA QUEIJO PALITO 60GX10 PP", Gramagem: "0,060", Und: 10, Caixas: 138, PPm: 55 },
+  { Codigo: "300061857", Material: "FOFURA PRESUNTO 60GX10 PP", Gramagem: "0,060", Und: 10, Caixas: 138, PPm: 55 },
+  { Codigo: "300061858", Material: "FOFURA CHURRASCO 60GX10 PP", Gramagem: "0,060", Und: 10, Caixas: 138, PPm: 55},
+  { Codigo: "300061859", Material: "FOFURA CEBOLA 60GX10 PP", Gramagem: "0,060", Und: 10, Caixas: 138, PPm: 55 },
+  { Codigo: "300061860", Material: "FOFURA CHURRASCO 35GX10 PP", Gramagem: "0,035", Und: 10, Caixas: 210, PPm: 55},
 ]
 
 export const LINHAS_PRODUCAO = ["Linha 1", "Linha 2", "Linha 3", "Linha 4", "Linha 5"]
