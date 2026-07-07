@@ -3,11 +3,33 @@ import { createClient } from '@supabase/supabase-js'
 async function insertInspection(supabase, input) {
   const { parsed, result, ocrRaw, ocrConfidence, sharpness, expectedLS, expectedExpiration, producaoISO } = input
 
+  function toISO(dateLike) {
+    if (!dateLike) return null
+    // already ISO YYYY-MM-DD?
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateLike)) return dateLike
+    // DD/MM/YY or DD/MM/YYYY -> convert
+    const m = String(dateLike).match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/)
+    if (m) {
+      let [_, dd, mm, yy] = m
+      dd = dd.padStart(2, '0')
+      mm = mm.padStart(2, '0')
+      if (yy.length === 2) {
+        // assume 20YY for two-digit years
+        yy = '20' + yy
+      }
+      return `${yy}-${mm}-${dd}`
+    }
+    // fallback try Date parse
+    const d = new Date(dateLike)
+    if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10)
+    return null
+  }
+
   // Use canonical column names that exist in the upstream schema.
   const payload = {
-    production_date: producaoISO,
+    production_date: toISO(producaoISO) ?? producaoISO,
     julian_code: expectedLS,
-    expiration_date: expectedExpiration,
+    expiration_date: toISO(expectedExpiration) ?? expectedExpiration,
     approved: result.aprovado,
     raw_text: ocrRaw || null,
     parsed_data: parsed?.data ?? null,

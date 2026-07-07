@@ -253,7 +253,7 @@ function ScannerPage() {
                         ocrConfidence: confidence,
                         sharpness: score,
                         expectedLS,
-                        expectedExpiration: formatDateBR(expectedExp),
+                        expectedExpiration: formatDateISO(expectedExp),
                         producaoISO: prodDateISO,
                       }),
                     })
@@ -271,7 +271,7 @@ function ScannerPage() {
                       ocrConfidence: confidence,
                       sharpness: score,
                       expectedLS,
-                      expectedExpiration: formatDateBR(expectedExp),
+                      expectedExpiration: formatDateISO(expectedExp),
                       producaoISO: prodDateISO,
                     })
                   }
