@@ -43,10 +43,22 @@ interface Props {
 const HORAS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"))
 const MINUTOS = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"))
 
-function TimePicker({ id }: { id: string }) {
+function TimePicker({
+  id,
+  hour,
+  minute,
+  onChange,
+  disabled = false,
+}: {
+  id: string
+  hour: string
+  minute: string
+  onChange: (payload: { hour: string; minute: string }) => void
+  disabled?: boolean
+}) {
   return (
     <div className="flex gap-2">
-      <Select>
+      <Select value={hour} onValueChange={(value) => onChange({ hour: value, minute })} disabled={disabled}>
         <SelectTrigger id={`${id}-h`} className="w-20">
           <SelectValue placeholder="00" />
         </SelectTrigger>
@@ -58,7 +70,7 @@ function TimePicker({ id }: { id: string }) {
           ))}
         </SelectContent>
       </Select>
-      <Select>
+      <Select value={minute} onValueChange={(value) => onChange({ hour, minute: value })} disabled={disabled}>
         <SelectTrigger id={`${id}-m`} className="w-20">
           <SelectValue placeholder="00" />
         </SelectTrigger>
@@ -81,6 +93,10 @@ export function ApprovedProductionForm({ prefill, triggerAriaLabel }: Props) {
   const [produtoCodigo, setProdutoCodigo] = useState("")
   const [ppm, setPpm] = useState("")
   const [meta85, setMeta85] = useState("")
+  const [bolsasProduzidas, setBolsasProduzidas] = useState("")
+  const [eficienciaEa, setEficienciaEa] = useState("")
+  const [horaInicio, setHoraInicio] = useState({ hour: "", minute: "" })
+  const [horaFinal, setHoraFinal] = useState({ hour: "", minute: "" })
 
   const produtos = useMemo(() => (familia ? getMaterialsByFamily(familia) : []), [familia])
   const turnoOptions = Object.keys(TURNOS) as TurnoName[]
@@ -90,6 +106,8 @@ export function ApprovedProductionForm({ prefill, triggerAriaLabel }: Props) {
     setProdutoCodigo("")
     setPpm("")
     setMeta85("")
+    setEficienciaEa("")
+    setBolsasProduzidas("")
   }
 
   const handleProdutoChange = (value: string) => {
@@ -99,6 +117,7 @@ export function ApprovedProductionForm({ prefill, triggerAriaLabel }: Props) {
     if (!material) {
       setPpm("")
       setMeta85("")
+      setEficienciaEa("")
       return
     }
 
@@ -106,6 +125,7 @@ export function ApprovedProductionForm({ prefill, triggerAriaLabel }: Props) {
 
     if (!turno) {
       setMeta85("")
+      setEficienciaEa("")
       return
     }
 
@@ -116,18 +136,47 @@ export function ApprovedProductionForm({ prefill, triggerAriaLabel }: Props) {
     const nextTurno = value as TurnoName
     setTurno(nextTurno)
 
+    const turnoConfig = TURNOS[nextTurno]
+    if (turnoConfig) {
+      const [inicioHour, inicioMinute] = turnoConfig.inicio.split(":")
+      const [fimHour, fimMinute] = turnoConfig.fim.split(":")
+      setHoraInicio({ hour: inicioHour, minute: inicioMinute })
+      setHoraFinal({ hour: fimHour, minute: fimMinute })
+    }
+
     if (!produtoCodigo) {
       setMeta85("")
+      setEficienciaEa("")
       return
     }
 
     const material = findMaterialByCodigo(produtoCodigo)
     if (!material) {
       setMeta85("")
+      setEficienciaEa("")
       return
     }
 
     setMeta85(String(calculateMeta85(material.PPm, nextTurno)))
+  }
+
+  const handleBolsasProduzidasChange = (value: string) => {
+    setBolsasProduzidas(value)
+
+    if (!meta85 || !turno || !familia || !produtoCodigo) {
+      setEficienciaEa("")
+      return
+    }
+
+    const parsedMeta = Number(meta85)
+    const parsedBolsas = Number(value)
+
+    if (!parsedMeta || !parsedBolsas) {
+      setEficienciaEa("")
+      return
+    }
+
+    setEficienciaEa(String(Number(((parsedBolsas / parsedMeta) * 100).toFixed(2))))
   }
 
   return (
@@ -196,19 +245,35 @@ export function ApprovedProductionForm({ prefill, triggerAriaLabel }: Props) {
 
           <Row>
             <Field label="H Início">
-              <TimePicker id="hini" />
+              <TimePicker
+                id="hini"
+                hour={horaInicio.hour}
+                minute={horaInicio.minute}
+                onChange={setHoraInicio}
+                disabled={!turno}
+              />
             </Field>
             <Field label="H Final">
-              <TimePicker id="hfim" />
+              <TimePicker
+                id="hfim"
+                hour={horaFinal.hour}
+                minute={horaFinal.minute}
+                onChange={setHoraFinal}
+                disabled={!turno}
+              />
             </Field>
           </Row>
 
           <Row>
             <Field label="Bolsas produzidas">
-              <Input type="number" />
+              <Input
+                type="number"
+                value={bolsasProduzidas}
+                onChange={(event) => handleBolsasProduzidasChange(event.target.value)}
+              />
             </Field>
             <Field label="Eficiência da EA">
-              <Input type="number" step="0.01" />
+              <Input type="number" step="0.01" value={eficienciaEa} readOnly />
             </Field>
             <Field label="Filme Perdas (kg)">
               <Input type="number" step="0.01" />

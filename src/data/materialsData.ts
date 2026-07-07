@@ -7,7 +7,7 @@ export interface Material {
   PPm: number
 }
 
-export const MATERIAL_FAMILIES = ["Torcida"] as const
+export const MATERIAL_FAMILIES = ["Torcida", "Fofura"] as const
 export type MaterialFamily = (typeof MATERIAL_FAMILIES)[number]
 
 export type TurnoName = "1º Turno" | "2º Turno" | "3º Turno"
