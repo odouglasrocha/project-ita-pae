@@ -42,6 +42,9 @@ export const TURNOS: Record<TurnoName, TurnoDefinition> = {
 
 export const materialsData: Material[] = [
   { Codigo: "300061751", Material: "TORCIDA BACON 35GX26 PP", Gramagem: "0,035", Und: 26, Caixas: 150, PPm: 65 },
+  { Codigo: "300061782", Material: "FOFURA BACON 35GX26 PP", Gramagem: "0,035", Und: 26, Caixas: 150, PPm: 75 },
+  { Codigo: "300061783", Material: "FOFURA BACON 60GX24 PP", Gramagem: "0,060", Und: 24, Caixas: 135, PPm: 75 },
+  { Codigo: "300061784", Material: "FOFURA CHURRASCO 35GX26 PP", Gramagem: "0,035", Und: 26, Caixas: 150, PPm: 75 },
   { Codigo: "300061750", Material: "TORCIDA BACON 60GX24 PP", Gramagem: "0,060", Und: 24, Caixas: 135, PPm: 65 },
   { Codigo: "300061635", Material: "TORCIDA BACON 420GX16 PP", Gramagem: "0,420", Und: 16, Caixas: 16, PPm: 30 },
   { Codigo: "300061778", Material: "TORCIDA CHURRASCO 60GX24 PP", Gramagem: "0,060", Und: 24, Caixas: 135, PPm: 75 },
@@ -80,6 +83,10 @@ export const LINHAS_PRODUCAO = ["Linha 1", "Linha 2", "Linha 3", "Linha 4", "Lin
 
 export function getMaterialFamily(material: Material): MaterialFamily {
   const normalizedName = material.Material.toUpperCase()
+
+  if (normalizedName.includes("FOFURA")) {
+    return "Fofura"
+  }
 
   if (normalizedName.includes("TORCIDA")) {
     return "Torcida"
