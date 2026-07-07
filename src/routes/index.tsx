@@ -10,9 +10,11 @@ function Index() {
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <span className="text-mono text-sm font-bold">LS</span>
-            </div>
+            <img
+              src="/pepsico-logo.png"
+              alt="PepsiCo logo"
+              className="h-9 w-auto object-contain"
+            />
             <div>
               <div className="text-sm font-semibold tracking-wide">
                 InspectorLS

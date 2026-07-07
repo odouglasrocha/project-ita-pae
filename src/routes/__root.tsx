@@ -95,15 +95,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Scanner contínuo para validação de data de validade, código juliano e inspeção de qualidade em embalagens industriais." },
       { property: "og:description", content: "Scanner contínuo para validação de data de validade, código juliano e inspeção de qualidade em embalagens industriais." },
       { name: "twitter:description", content: "Scanner contínuo para validação de data de validade, código juliano e inspeção de qualidade em embalagens industriais." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6577733c-b53b-43f9-bf55-32e34897f692/id-preview-6cc53abe--4571d23f-416d-4132-b711-45d770ed60e6.lovable.app-1783259304299.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6577733c-b53b-43f9-bf55-32e34897f692/id-preview-6cc53abe--4571d23f-416d-4132-b711-45d770ed60e6.lovable.app-1783259304299.png" },
+      { property: "og:image", content: "/pepsico-logo.png" },
+      { name: "twitter:image", content: "/pepsico-logo.png" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/pepsico-logo.png", type: "image/png" },
     ],
   }),
   shellComponent: RootShell,
