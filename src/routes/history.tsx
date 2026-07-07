@@ -28,16 +28,7 @@ function HistoryPage() {
   useEffect(() => {
     listInspections(200)
       .then(setRows)
-      .catch((e) => {
-        const errorMsg = (e as Error).message
-        const fullError = `${errorMsg}. ${
-          errorMsg?.includes("Unauthorized") || errorMsg?.includes("Invalid")
-            ? "Verifique se as credenciais do Supabase estão configuradas corretamente no servidor. Em Vercel, adicione VITE_SUPABASE_ANON_KEY nas variáveis de ambiente."
-            : ""
-        }`
-        console.error("[History] Failed to load inspections:", e)
-        setErr(fullError)
-      })
+      .catch((e) => setErr((e as Error).message))
   }, [])
 
   const toggle = async (id: string) => {

@@ -7,6 +7,7 @@ import { parsePrint, type ParsedPrint } from "@/lib/validation/parser"
 import { validatePrint, type ValidationResult } from "@/lib/validation/validator"
 import { recognizeCanvas, terminateOcr } from "@/lib/ocr/tesseract"
 import { computeSharpness } from "@/lib/vision/quality"
+import { analyzeLuminance, enhanceForDarkOCR } from "@/lib/vision/preprocess"
 import { ApprovedProductionForm } from "@/components/scanner/ApprovedProductionForm"
 import { saveInspection } from "@/lib/inspections/repository"
 
@@ -180,10 +181,47 @@ function ScannerPage() {
         busyRef.current = true
         lastOcrAtRef.current = now
         try {
-          const { text, confidence } = await recognizeCanvas(canvas)
+          // Passe 1 — canvas base (mantém pipeline atual)
+          const first = await recognizeCanvas(canvas)
+          let text = first.text
+          let confidence = first.confidence
+          let p = parsePrint(text)
+
+          // Passe 2 (dark boost) — só quando faltam campos ou a superfície é escura/baixo contraste.
+          const lum = analyzeLuminance(canvas)
+          const missing = !(p.data && p.ls && p.ea && p.hora)
+          if (missing || lum.isDark || lum.isLowContrast) {
+            try {
+              const enhanced = enhanceForDarkOCR(canvas)
+              const second = await recognizeCanvas(enhanced)
+              const p2 = parsePrint(second.text)
+              const merged: ParsedPrint = {
+                raw: `${p.raw}\n${p2.raw}`,
+                cleaned: p.cleaned || p2.cleaned,
+                data: p.data ?? p2.data,
+                dateObj: p.dateObj ?? p2.dateObj,
+                ls: p.ls ?? p2.ls,
+                julianNumber: p.julianNumber ?? p2.julianNumber,
+                ea: p.ea ?? p2.ea,
+                hora: p.hora ?? p2.hora,
+              }
+              const countFilled = (x: ParsedPrint) =>
+                Number(Boolean(x.data)) + Number(Boolean(x.ls)) + Number(Boolean(x.ea)) + Number(Boolean(x.hora))
+              const filledBefore = countFilled(p)
+              const filledAfter = countFilled(merged)
+              // Só usa o texto/confiança do 2º passe se ele efetivamente ajudou.
+              if (filledAfter > filledBefore || (filledAfter === filledBefore && second.confidence > confidence)) {
+                text = `${first.text}\n${second.text}`
+                confidence = Math.max(confidence, second.confidence)
+              }
+              p = merged
+            } catch {
+              /* enhancement é best-effort — jamais quebra o loop */
+            }
+          }
+
           setOcrRaw(text)
           setOcrConfidence(confidence)
-          const p = parsePrint(text)
           setParsed(p)
           if (p.data || p.ls) {
             const sig = `${p.data ?? ""}|${p.ls ?? ""}|${p.ea ?? ""}|${p.hora ?? ""}`

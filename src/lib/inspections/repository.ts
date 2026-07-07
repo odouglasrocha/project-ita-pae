@@ -88,60 +88,17 @@ export async function saveInspection(input: SaveInspectionInput): Promise<string
   return data.id
 }
 
-function normalizeInspectionRow(row: Record<string, unknown>): InspectionRow {
-  return {
-    id: String(row.id ?? ""),
-    created_at: String(row.created_at ?? ""),
-    status: String((row.status as string | undefined) ?? (row.result_summary as string | undefined) ?? ""),
-    aprovado: Boolean((row.aprovado as boolean | undefined) ?? (row.approved as boolean | undefined) ?? false),
-    ea: (row.ea as string | null | undefined) ?? (row.parsed_ea as string | null | undefined) ?? null,
-    ls: (row.ls as string | null | undefined) ?? (row.parsed_ls as string | null | undefined) ?? null,
-    data_validade:
-      (row.data_validade as string | null | undefined) ??
-      (row.parsed_data as string | null | undefined) ??
-      (row.expiration_date as string | null | undefined) ??
-      null,
-    hora: (row.hora as string | null | undefined) ?? (row.parsed_hour as string | null | undefined) ?? null,
-    producao:
-      (row.producao as string | null | undefined) ??
-      (row.production_date as string | null | undefined) ??
-      null,
-    ocr_raw: (row.ocr_raw as string | null | undefined) ?? (row.raw_text as string | null | undefined) ?? null,
-    ocr_confidence: typeof row.ocr_confidence === "number" ? row.ocr_confidence : null,
-    sharpness: typeof row.sharpness === "number" ? row.sharpness : null,
-    expected_ls: (row.expected_ls as string | null | undefined) ?? (row.julian_code as string | null | undefined) ?? null,
-    expected_expiration:
-      (row.expected_expiration as string | null | undefined) ??
-      (row.expiration_date as string | null | undefined) ??
-      null,
-  }
-}
-
-function normalizeInspectionFields(inspectionId: string, row: Record<string, unknown>): InspectionFieldRow[] {
-  const rawFields = row.fields
-  if (rawFields && typeof rawFields === "object" && !Array.isArray(rawFields)) {
-    return Object.entries(rawFields as Record<string, Record<string, unknown>>).map(([fieldName, value], index) => ({
-      id: `${inspectionId}-${index}`,
-      inspection_id: inspectionId,
-      field_name: fieldName,
-      expected_value: value?.esperado as string | null | undefined,
-      found_value: value?.encontrado as string | null | undefined,
-      status: String(value?.status ?? "ok"),
-      created_at: String(row.created_at ?? ""),
-    }))
-  }
-
-  return []
-}
-
 export async function listInspections(limit = 100): Promise<InspectionRow[]> {
-  const { data, error } = await supabase.from("inspection_results").select("*").order("created_at", { ascending: false }).limit(limit)
+  const { data, error } = await supabase
+    .from("inspection_results")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit)
   if (error) {
     console.error("[inspections] list failed", error)
     return []
   }
-
-  return (data ?? []).map((row) => normalizeInspectionRow(row as Record<string, unknown>))
+  return (data ?? []) as InspectionRow[]
 }
 
 export async function getInspectionFields(inspectionId: string): Promise<InspectionFieldRow[]> {
@@ -150,21 +107,9 @@ export async function getInspectionFields(inspectionId: string): Promise<Inspect
     .select("*")
     .eq("inspection_id", inspectionId)
     .order("created_at", { ascending: true })
-
-  if (!error && (data?.length ?? 0) > 0) {
-    return (data ?? []) as InspectionFieldRow[]
-  }
-
-  const { data: inspectionData, error: parentError } = await supabase
-    .from("inspection_results")
-    .select("id, fields, created_at")
-    .eq("id", inspectionId)
-    .single()
-
-  if (parentError || !inspectionData) {
-    console.error("[inspections] fields failed", error ?? parentError)
+  if (error) {
+    console.error("[inspections] fields failed", error)
     return []
   }
-
-  return normalizeInspectionFields(inspectionId, inspectionData as Record<string, unknown>)
+  return (data ?? []) as InspectionFieldRow[]
 }

@@ -1,25 +1,17 @@
 import { createClient } from "@supabase/supabase-js"
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
-const SUPABASE_SERVICE_ROLE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY
+// External Supabase project (pae). Anon key is publishable — safe on the client.
+// Values come from environment variables (.env local / Vercel Project Settings).
+// Fallbacks garantem funcionamento se as variáveis não estiverem definidas.
+const SUPABASE_URL =
+  (import.meta.env.VITE_SUPABASE_URL as string | undefined) ??
+  "https://obozbmqszuclsaiupqnw.supabase.co"
 
-// In production/Vercel, if VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY are not defined,
-// show a detailed error instead of silently failing
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  const missingVars = []
-  if (!SUPABASE_URL) missingVars.push("VITE_SUPABASE_URL")
-  if (!SUPABASE_ANON_KEY) missingVars.push("VITE_SUPABASE_ANON_KEY")
-  const errorMsg = `[Supabase] Critical configuration error: Missing environment variables: ${missingVars.join(", ")}. 
-  In Vercel/Production, add these to your project's Environment Variables in Settings.
-  In local development, ensure .env.local exists with valid credentials.`
-  console.error(errorMsg)
-}
+const SUPABASE_ANON_KEY =
+  (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ??
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ib3pibXFzenVjbHNhaXVwcW53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5MDY4NzEsImV4cCI6MjA5ODQ4Mjg3MX0.dSkLRe-B4fgKx1W1Z7NshN96bQA7nUchg01loGmJSWc"
 
-const clientKey = import.meta.env.DEV
-  ? SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY
-  : SUPABASE_ANON_KEY
-
-export const supabase = createClient(SUPABASE_URL || "", clientKey || "", {
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
 })
+

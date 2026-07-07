@@ -20,9 +20,12 @@ Adicione as seguintes variáveis com seus valores do `.env.local`:
 | Variável | Valor | De onde pegar |
 |---|---|---|
 | `VITE_SUPABASE_URL` | `https://obozbmqszuclsaiupqnw.supabase.co` | Arquivo `.env.local` linha 1 |
-| `VITE_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIs...` | Arquivo `.env.local` linha 2 |
+| `VITE_SUPABASE_SERVICE_ROLE_KEY` | `eyJhbGciOiJIUzI1NiIs...` | Arquivo `.env.local` linha 3 |
 
-**IMPORTANTE:** Copie os valores EXATAMENTE como estão em `.env.local`.
+**IMPORTANTE:** 
+- Copie os valores EXATAMENTE como estão em `.env.local`
+- `VITE_SUPABASE_SERVICE_ROLE_KEY` é a chave que **bypassa RLS**, então funciona mesmo com políticas restritivas
+- **Não é necessário** copiar `VITE_SUPABASE_ANON_KEY` para Vercel
 
 ### Passo 3: Redeploy
 
@@ -44,7 +47,8 @@ Após redeploy:
 ⚠️ **Importante:**
 - `.env.local` contém credenciais sensíveis - NUNCA commite para o Git
 - O arquivo `.gitignore` foi atualizado para `*.local` para proteger esses arquivos
-- Se expôs as chaves no Git, [reforce as regras do RLS no Supabase](https://supabase.com/docs/guides/auth/row-level-security)
+- `VITE_SUPABASE_SERVICE_ROLE_KEY` tem acesso total - proteja bem em Vercel
+- Se expôs as chaves no Git, considere rotacioná-las no Supabase
 
 ## Troubleshooting
 
