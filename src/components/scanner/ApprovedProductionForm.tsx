@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { ClipboardCheck } from "lucide-react"
 import {
   Dialog,
@@ -18,6 +18,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  calculateMeta85,
+  findMaterialByCodigo,
+  getMaterialsByFamily,
+  MATERIAL_FAMILIES,
+  TURNOS,
+  type MaterialFamily,
+  type TurnoName,
+} from "@/data/materialsData"
 
 export interface ProductionFormPrefill {
   ea?: string
@@ -67,6 +76,59 @@ function TimePicker({ id }: { id: string }) {
 
 export function ApprovedProductionForm({ prefill, triggerAriaLabel }: Props) {
   const [open, setOpen] = useState(false)
+  const [familia, setFamilia] = useState<MaterialFamily | "">("")
+  const [turno, setTurno] = useState<TurnoName | "">("")
+  const [produtoCodigo, setProdutoCodigo] = useState("")
+  const [ppm, setPpm] = useState("")
+  const [meta85, setMeta85] = useState("")
+
+  const produtos = useMemo(() => (familia ? getMaterialsByFamily(familia) : []), [familia])
+  const turnoOptions = Object.keys(TURNOS) as TurnoName[]
+
+  const handleFamiliaChange = (value: string) => {
+    setFamilia(value as MaterialFamily)
+    setProdutoCodigo("")
+    setPpm("")
+    setMeta85("")
+  }
+
+  const handleProdutoChange = (value: string) => {
+    setProdutoCodigo(value)
+
+    const material = findMaterialByCodigo(value)
+    if (!material) {
+      setPpm("")
+      setMeta85("")
+      return
+    }
+
+    setPpm(String(material.PPm))
+
+    if (!turno) {
+      setMeta85("")
+      return
+    }
+
+    setMeta85(String(calculateMeta85(material.PPm, turno)))
+  }
+
+  const handleTurnoChange = (value: string) => {
+    const nextTurno = value as TurnoName
+    setTurno(nextTurno)
+
+    if (!produtoCodigo) {
+      setMeta85("")
+      return
+    }
+
+    const material = findMaterialByCodigo(produtoCodigo)
+    if (!material) {
+      setMeta85("")
+      return
+    }
+
+    setMeta85(String(calculateMeta85(material.PPm, nextTurno)))
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -92,10 +154,20 @@ export function ApprovedProductionForm({ prefill, triggerAriaLabel }: Props) {
         <form className="space-y-4 px-4 py-4 text-sm">
           <Row>
             <Field label="Família">
-              <SimpleSelect placeholder="Selecione" options={["Torcida", "Fofura", "Elma Chips"]} />
+              <SimpleSelect
+                placeholder="Selecione"
+                options={MATERIAL_FAMILIES}
+                value={familia}
+                onValueChange={handleFamiliaChange}
+              />
             </Field>
             <Field label="Turno">
-              <SimpleSelect placeholder="Turno" options={["1º Turno", "2º Turno", "3º Turno"]} />
+              <SimpleSelect
+                placeholder="Turno"
+                options={turnoOptions}
+                value={turno}
+                onValueChange={handleTurnoChange}
+              />
             </Field>
           </Row>
 
@@ -103,11 +175,15 @@ export function ApprovedProductionForm({ prefill, triggerAriaLabel }: Props) {
             <Field label="Produto">
               <SimpleSelect
                 placeholder="Selecione o produto"
-                options={["Torcida Presunto", "Torcida Bacon", "Torcida Pizza"]}
+                options={produtos.map((produto) => produto.Codigo)}
+                optionLabels={produtos.map((produto) => produto.Material)}
+                value={produtoCodigo}
+                onValueChange={handleProdutoChange}
+                disabled={!familia}
               />
             </Field>
             <Field label="Ppm">
-              <Input type="number" placeholder="" />
+              <Input type="number" value={ppm} placeholder="" readOnly />
             </Field>
             <Field label="Minuto">
               <Input type="number" placeholder="" />
@@ -115,7 +191,7 @@ export function ApprovedProductionForm({ prefill, triggerAriaLabel }: Props) {
           </Row>
 
           <Field label="Meta 85%">
-            <Input type="number" placeholder="" />
+            <Input type="number" value={meta85} placeholder="" readOnly />
           </Field>
 
           <Row>
@@ -266,19 +342,27 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function SimpleSelect({
   placeholder,
   options,
+  optionLabels,
+  value,
+  onValueChange,
+  disabled = false,
 }: {
   placeholder: string
-  options: string[]
+  options: readonly string[]
+  optionLabels?: readonly string[]
+  value?: string
+  onValueChange?: (value: string) => void
+  disabled?: boolean
 }) {
   return (
-    <Select>
+    <Select value={value} onValueChange={onValueChange} disabled={disabled}>
       <SelectTrigger>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        {options.map((o) => (
-          <SelectItem key={o} value={o}>
-            {o}
+        {options.map((option, index) => (
+          <SelectItem key={option} value={option}>
+            {optionLabels?.[index] ?? option}
           </SelectItem>
         ))}
       </SelectContent>

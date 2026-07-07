@@ -7,6 +7,39 @@ export interface Material {
   PPm: number
 }
 
+export const MATERIAL_FAMILIES = ["Torcida"] as const
+export type MaterialFamily = (typeof MATERIAL_FAMILIES)[number]
+
+export type TurnoName = "1º Turno" | "2º Turno" | "3º Turno"
+
+export interface TurnoDefinition {
+  label: TurnoName
+  inicio: string
+  fim: string
+  horas: number
+}
+
+export const TURNOS: Record<TurnoName, TurnoDefinition> = {
+  "1º Turno": {
+    label: "1º Turno",
+    inicio: "05:30",
+    fim: "13:50",
+    horas: 8.3333,
+  },
+  "2º Turno": {
+    label: "2º Turno",
+    inicio: "13:50",
+    fim: "22:08",
+    horas: 8.3,
+  },
+  "3º Turno": {
+    label: "3º Turno",
+    inicio: "22:08",
+    fim: "05:30",
+    horas: 7.3667,
+  },
+}
+
 export const materialsData: Material[] = [
   { Codigo: "300061751", Material: "TORCIDA BACON 35GX26 PP", Gramagem: "0,035", Und: 26, Caixas: 150, PPm: 65 },
   { Codigo: "300061750", Material: "TORCIDA BACON 60GX24 PP", Gramagem: "0,060", Und: 24, Caixas: 135, PPm: 65 },
@@ -44,6 +77,28 @@ export const materialsData: Material[] = [
 ]
 
 export const LINHAS_PRODUCAO = ["Linha 1", "Linha 2", "Linha 3", "Linha 4", "Linha 5"]
+
+export function getMaterialFamily(material: Material): MaterialFamily {
+  const normalizedName = material.Material.toUpperCase()
+
+  if (normalizedName.includes("TORCIDA")) {
+    return "Torcida"
+  }
+
+  return "Torcida"
+}
+
+export function getMaterialsByFamily(family: MaterialFamily): Material[] {
+  return materialsData.filter((material) => getMaterialFamily(material) === family)
+}
+
+export function calculateMeta85(ppm: number, turno: TurnoName): number {
+  if (!ppm || !turno) {
+    return 0
+  }
+
+  return Number(((ppm * 60 * TURNOS[turno].horas) * 0.85).toFixed(2))
+}
 
 export function findMaterialByCodigo(codigo: string): Material | undefined {
   return materialsData.find((m) => m.Codigo === codigo.trim())
